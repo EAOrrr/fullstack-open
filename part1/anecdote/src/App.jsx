@@ -53,7 +53,7 @@ const App = () => {
       <Button onSmash={()=>setSelected(Math.floor(Math.random() * anecdotes.length))} text='next anecdote'></Button>
       <Header header={'Anecdote with most votes'}/>
       <p>{anecdotes[maxVote]}</p>
-      <p> has {votes[maxVote]} </p>
+      <p> has {votes[maxVote]} votes.</p>
     </div>
   )
 }
