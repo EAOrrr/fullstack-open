@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import PersonForms from './PersonForms'
 import Filter from './Filter'
 import Persons from './Persons'
@@ -16,12 +17,20 @@ const InList = (element, list) => {
 
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1}
-  ]) 
+  const [persons, setPersons] = useState([]) 
   const [newPerson, setNewPerson] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterPerson, setFilterPerson] = useState('')
+
+  useEffect(() => {
+    console.log('effect');
+    axios.
+      get('http://localhost:3001/persons').
+      then(response => {
+        console.log('promise fullfilled')
+        setPersons(response.data)
+      })
+    }, [])
   
   const addName = (event) => {
     console.log('-------addName called-------------')
