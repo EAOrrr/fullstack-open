@@ -2,12 +2,13 @@ const express = require("express")
 const morgan = require("morgan")
 const app = express()
 
+
 app.use(express.json())
 morgan.token('content', (request, response) => {
   return JSON.stringify(request.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :content'))
-
+app.use(express.static('dist'))
 let persons = [
     { 
       "id": 1,
@@ -31,6 +32,10 @@ let persons = [
     }
 ]
 
+app.get('/', (request, response) => {
+  response.send('<h1> Phonebook App</h1>')
+})
+
 app.get('/info', (request, response) => {
     let now = new Date().toDateString() + ' ' + new Date().toTimeString()
     response.send(`<p>Phonebook has info for 2 people</p><p>${now}</p>`)
@@ -53,10 +58,8 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
-    console.log(persons.length)
     persons = persons.filter(person => person.id !== id)
 
-    console.log(persons.length)
     response.status(404).end()
 })
 
@@ -76,7 +79,7 @@ app.post('/api/persons', (request, response) => {
         error: "The number is missing"
       })
     }
-    if (persons.find(p => p.name === person.name)) {
+    if (  persons.find(p => p.name === person.name)) {
       return response.status(400).json({
         error: 'name must be unique'
       })
@@ -87,11 +90,14 @@ app.post('/api/persons', (request, response) => {
 })
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
+  response.status(404).json({ error: 'unknown endpoint' })
 }
 
 app.use(unknownEndpoint)
-const PORT = 3001
+// Followed the steps in part a, but the deployment kept failing. 
+// After 3 days of checking, 
+// I realized that I forgot to add process.env.PORT || myport here.
+const PORT = process.env.PORT || 1337
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
