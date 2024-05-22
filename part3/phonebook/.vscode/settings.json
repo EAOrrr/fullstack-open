@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/373bd898-8483-4316-94d4-387b25f1b01f/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/fullstackopen-phonebook",
+    "appService.deploySubpath": "."
+}
