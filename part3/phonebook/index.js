@@ -7,7 +7,7 @@ const morgan = require("morgan")
 
 app.use(express.static('dist'))
 
-morgan.token('content', (request, response) => {
+morgan.token('content', (request, ) => {
   return JSON.stringify(request.body)
 })
 
@@ -15,8 +15,11 @@ const errorHandler = (error, request, response, next) => {
   console.log(error.message)
 
   if (error.name === 'CastError') {
-    return response.status(400).send({error: ''})
+    return response.status(400).send({error: 'malformatted id'})
+  } else if (error.name == 'ValidationError') {
+    return response.status(400).send({error: error.message})
   }
+
   next(error)
 }
 
@@ -59,55 +62,49 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndDelete(request.params.id)
-      .then(result => {
+      .then(() => {
         response.status(204).end()
       })
       .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
 
-    if (!body.name) {
-      return response.status(400).json({
-        error: "The name is missing"
-      })
-    }
-    if (!body.number) {
-      return response.status(400).json({
-        error: "The number is missing"
-      })
-    }
     // missing: check if the name already exists in the phonebook
     const person = new Person({
       name: body.name,
       number: body.number 
     })
 
-    person.save().then(savedPerson => {
+    person.save()
+    .then(savedPerson => {
       response.json(savedPerson)
     })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
-  
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, {new: true})
+  const {name, number} = request.body
+  Person.findByIdAndUpdate(request.params.id, 
+    {name, number},
+    {new: true, runValidators: true, context: 'query'}
+  )
   .then(updatedPerson => {
-    response.json(updatedPerson)
+    if (updatedPerson) {
+      response.json(updatedPerson)
+    }
+    else {
+      response.status(404).end()
+    }
   })
   .catch(error => next(error))
 })
 
 
+
 app.use(unknownEndpoint)
-app.use(errorHandler)
-// Followed the steps in part a, but I can't access resource after the deployment 
+app.use(errorHandler)// Followed the steps in part a, but I can't access resource after the deployment 
 // After 3 days of checking, 
 // I realized that I forgot to add process.env.PORT || myport here.
 const PORT = process.env.PORT || 3001
