@@ -51,10 +51,13 @@ const App = () => {
             setMessage(null)
           }, 5000)
         }).catch(error => {
-          setMessage(`Information of '${person.name}' was already deleted from server`)
+          // part2 
+          // setMessage(`Information of '${person.name}' was already deleted from server`)
+          // setPersons(persons.filter(p => p.name !== person.name))
+          // part3
+          setMessage(`Error occurs when updating ${person.name}.`)
           setMessageStatus(false) 
-          setPersons(persons.filter(p => p.name !== person.name))
-          
+          personService.getAll().then(persons => setPersons(persons))
           setTimeout(()=>{
             setMessageStatus(true)
             setMessage(null)
