@@ -52,7 +52,7 @@ const App = () => {
           }, 5000)
         }).catch(error => {
           setMessage(`Information of '${person.name}' was already deleted from server`)
-          setMessageStatus(false)
+          setMessageStatus(false) 
           setPersons(persons.filter(p => p.name !== person.name))
           
           setTimeout(()=>{
@@ -64,12 +64,21 @@ const App = () => {
       }
     }
     else {
-      personService.create(personObject).then(response => {
+      personService
+      .create(personObject)
+      .then(response => {
         setPersons(persons.concat(response))
         setMessage(`Added ${newPerson}`)
         setNewNumber('')
         setNewPerson('')
         setMessageStatus(true)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
+      })
+      .catch(error => {
+        setMessage(error.response.data.error)
+        setMessageStatus(false)
         setTimeout(() => {
           setMessage(null)
         }, 5000)
@@ -86,9 +95,8 @@ const App = () => {
     }
     if (window.confirm(`Delete ${person.name}`)) {
       personService.deleteID(id).then(returnedPerson => {
-        console.log(returnedPerson)
-        console.log(persons.filter(p => p.id !== returnedPerson.id) )
-        setPersons(persons.filter(p => p.id !== returnedPerson.id))
+        console.log('after filter', persons.filter(p => p.id !== id) )
+        setPersons(persons.filter(p => p.id !== id))
       }).catch(error => {
           setMessage(`Information of '${person.name}' was already deleted from server`)
           setMessageStatus(false)
