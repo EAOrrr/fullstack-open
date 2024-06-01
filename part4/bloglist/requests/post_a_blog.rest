@@ -4,6 +4,5 @@ Content-Type: application/json
 {
     "title": "first blog",
     "author": "Tiffiany Cao",
-    "url": "None",
     "likes": 1  
 }
