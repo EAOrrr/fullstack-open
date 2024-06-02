@@ -157,7 +157,7 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
     })
 
 
-    test.only('a valid blog can be added', async () => {
+    test('a valid blog can be added', async () => {
 
         const token = await helper.getUserToken(api, 'mluukkai', 'salainen')
         
@@ -188,7 +188,7 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
         assert(_.some(content, newBlog))
     })
             
-    test.only('missing likes will default to 0', async () => {
+    test('missing likes will default to 0', async () => {
         const token = await helper.getUserToken(api, 'mluukkai', 'salainen')
         const newBlog = {
             title: "New Blog",
@@ -208,7 +208,7 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
         assert.strictEqual(blog.likes, 0)
     })
 
-    test.only('missing title and url will return 400', async () => {
+    test('missing title and url will return 400', async () => {
         const token = await helper.getUserToken(api, 'mluukkai', 'salainen')
         const blogsPreviousLength = (await helper.blogsInDb()).length
         const blogMissingUrl = {
@@ -235,9 +235,54 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
         
         const blogsNowLength = (await helper.blogsInDb()).length
         assert.strictEqual(blogsNowLength, blogsPreviousLength)
-
     })
 
+    test('a blog can be deleted', async () => {
+        const token = await helper.getUserToken(api, 'mluukkai', 'salainen')
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToDelete = blogsAtStart[0]
+        await api
+            .delete(`/api/blogs/${blogToDelete.id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(204)
+        const blogAtEnd = await helper.blogsInDb()
+        assert.strictEqual(blogAtEnd.length, blogsAtStart.length - 1)
+        const titles = blogAtEnd.map(blog => blog.title)
+        assert(!titles.includes(blogToDelete.title))
+    })
+
+    test('missing token will return 401', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToDelete = blogsAtStart[0]
+        await api
+            .delete(`/api/blogs/${blogToDelete.id}`)
+            .expect(401)
+            .expect('Content-Type', /application\/json/)
+        const blogAtEnd = await helper.blogsInDb()
+        assert.strictEqual(blogAtEnd.length, blogsAtStart.length)
+        const titles = blogAtEnd.map(blog => blog.title)
+        assert(titles.includes(blogToDelete.title))
+    })
+
+    test.only('wrong token will return 401', async() => {
+        const blogsAtStart = await helper.blogsInDb()
+        const token = 'wrong token'
+        const newBlog = {
+            title: "New Blog",
+            author: 'newBlog',
+            url: 'https://www.newblog.com',
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(401)
+            .expect('Content-Type', /application\/json/)
+        const blogAtEnd = await helper.blogsInDb()
+        assert.strictEqual(blogsAtStart.length, blogAtEnd.length)
+    })
+
+    
 })
 
 after(async () => {

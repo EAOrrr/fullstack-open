@@ -38,11 +38,6 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
     if (!blog) {
         return response.status(404).json({ error: 'blog not found' })
     }
-    // const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    // if (!decodedToken.id) {
-    //     return response.status(401).json({ error: 'token invalid' })
-    // }
-    // const user = await User.findById(decodedToken.id)
     const user = request.user
     const userId = user.id
     if (blog.user.toString() === userId.toString()) {

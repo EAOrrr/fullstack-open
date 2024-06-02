@@ -20,7 +20,7 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')) {
     return response.status(400).json({ error: 'expected `username` to be unique' })
   } else if (error.name ===  'JsonWebTokenError') {
-    return response.status(400).json({ error: 'token missing or invalid' })
+    return response.status(401).json({ error: 'token missing or invalid' })
   }
 
   next(error)
@@ -38,17 +38,14 @@ const tokenExtractor = (request, response, next) => {
 }
 
 const userExtractor = async (request, response, next) => {
-    // code that extracts the user
-    if (request.method === 'POST' || request.method === 'DELETE') {
-    //     request.user = null
-    //     return
-    // }
-      const decodedToken = jwt.verify(request.token, process.env.SECRET)
-      if (!decodedToken) {
-        return response.status(401).json({ error: 'token invalid' })
-      }
-      request.user = await User.findById(decodedToken.id)
+   if (request.token === null || request.token === undefined) {
+      return response.status(401).json({ error: 'token missing' })
+   }
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    if (!decodedToken) {
+      return response.status(401).json({ error: 'token invalid' })
     }
+    request.user = await User.findById(decodedToken.id)
     next()
 }
 
