@@ -1,4 +1,6 @@
 const Blog = require('../models/blog')
+const User = require('../models/user')
+const bcrypt = require('bcrypt')
 
 const initialBlogs = [
     {
@@ -56,6 +58,26 @@ const blogsInDb = async () => {
     return blogs.map(blog => blog.toJSON())
 }
 
+const usersInDb = async () => {
+    const users = await User.find({})
+    return users.map(user => user.toJSON())
+}
+
+const getUserToken = async(api, username, password) => {
+    // const pwdHash =  bcrypt.hash(password, 10)
+    const result = await api
+      .post('/api/login')
+      .send({ username, password})
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    const token = result.body.token.toString()
+    return token
+}
+
+
 module.exports = {
-    initialBlogs, blogsInDb
+    initialBlogs,
+    blogsInDb,
+    usersInDb,
+    getUserToken,
 }
