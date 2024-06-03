@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test",
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "test": "NODE_ENV=test node --test",
+    "dev": "NODE_ENV=development node index.js",
+    "start": "NODE_ENV=production node index.js",
     "lint": "eslint ."
   },
   "keywords": [],
