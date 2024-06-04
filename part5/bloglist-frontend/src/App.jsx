@@ -106,7 +106,7 @@ const App = () => {
               {user.username} logged in
               <button 
                 onClick={() => {
-                  window.localStorage.removeItem('loggedNoteappUser')
+                  window.localStorage.removeItem('loggedBlogappUser')
                   setUser(null)
                 }}>
                 logout
