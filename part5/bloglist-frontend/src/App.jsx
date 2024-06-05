@@ -1,6 +1,8 @@
-import { useState, useEffect, useInsertionEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginServer from './services/login'
 
@@ -14,10 +16,6 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
-
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
@@ -30,15 +28,15 @@ const App = () => {
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )  
+      setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
+    )
   }, [])
 
   const handleLogin = async(event) => {
     event.preventDefault()
     console.log('try to login with', username, password)
     try {
-      const user = await loginServer.login({username, password})
+      const user = await loginServer.login({ username, password })
       window.localStorage.setItem(
         'loggedBlogappUser', JSON.stringify(user)
       )
@@ -59,22 +57,50 @@ const App = () => {
 
   }
 
-  const handleCreate = async(event) => {
-    event.preventDefault()
-    console.log('try to create blog with', title, author, url)
+  const handleCreate = async(blogObject) => {
+    // event.preventDefault()
+    console.log('try to create blog with', blogObject)
     try {
-      const newBlog = await blogService.create({title, author, url})
-      setBlogs(blogs.concat(newBlog))
+      blogFormRef.current.toggleVisibility()
+      const newBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(newBlog).sort((a, b) => b.likes - a.likes))
       setMessage(`a new blog ${newBlog.title} by ${newBlog.author} added`)
       setMessageStatus(true)
-      setTitle('')
-      setAuthor('')
-      setUrl('')
       setTimeout(() => {
         setMessage(null)
       }, 5000)
 
     } catch (exception) {
+      console.log(exception)
+    }
+  }
+
+  const handleLike = async (blogObject) => {
+
+    try {
+      const newBlog = await blogService.update(blogObject.id, blogObject)
+      console.log(newBlog)
+      setBlogs(blogs
+        .map(blog => blog.id !== blogObject.id
+          ? blog
+          : { ...blog, likes: blog.likes + 1 })
+        .sort((a, b) => b.likes - a.likes)
+      )
+      console.log('success')
+    }
+    catch(exception) {
+      console.log(exception.name)
+    }
+  }
+
+  const handleRemove = async (blogObject) => {
+    try {
+      if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
+        await blogService.deleteId(blogObject.id)
+        setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
+      }
+    }
+    catch (exception) {
       console.log(exception)
     }
   }
@@ -86,67 +112,61 @@ const App = () => {
         <form onSubmit={handleLogin}>
           <div>
             username
-            <input type='text' value={username} name='Username' onChange={({target}) => setUsername(target.value)}/>
+            <input type='text' value={username} name='Username' onChange={({ target }) => setUsername(target.value)}/>
           </div>
           <div>
             password
-            <input type='password' value={password} name='Password' onChange={({target}) => setPassword(target.value)}/>
+            <input type='password' value={password} name='Password' onChange={({ target }) => setPassword(target.value)}/>
           </div>
           <button type='submit'>login</button>
         </form>
       )
     }
-    else {
-      // show blog form
-      return (
+  }
+  const blogFormRef = useRef()
+  const blogForm = () => {
+    // else {
+    // show blog form
+    return (
+      <div>
+        {/* blogs */}
         <div>
-          {/*user and blogs */}
-          <div>
-            <p>
-              {user.username} logged in
-              <button 
-                onClick={() => {
-                  window.localStorage.removeItem('loggedBlogappUser')
-                  setUser(null)
-                }}>
-                logout
-                </button>
-            </p>
-            {blogs.map(blog =>
-              <Blog key={blog.id} blog={blog} />
-            )}
-          </div>
-
-          {/*create new blog */}
-          <div>
-            <h2> create new</h2>
-            <form onSubmit={handleCreate}>
-              <div>
-                title 
-                <input type='text' value={title} name='Title' onChange={({target}) => setTitle(target.value)}/>
-              </div>
-              <div>
-                author 
-                <input type='text' value={author} name='Title' onChange={({target}) => setAuthor(target.value)}/>
-              </div>
-              <div>
-                url 
-                <input type='text' value={url} name='Title' onChange={({target}) => setUrl(target.value)}/>
-              </div>
-              <button type='submit'>create</button>
-            </form>
-          </div>
+          {blogs.map(blog =>
+            <Blog key={blog.id} blog={blog} likeBlog={handleLike} removeBlog={handleRemove} ownership={user.username === blog.user.username}/>
+          )}
         </div>
-        )
-      }
-    }
-    
+
+        {/*create new blog */}
+        <Togglable buttonLabel='new blog' ref={blogFormRef}>
+          <BlogForm createBlog={handleCreate} />
+        </Togglable>
+      </div>
+    )
+    // }
+  }
+
+  if (user) {
+    console.log('user: ', user)
+  }
 
   return (
     <div>
       <h2>blogs</h2>
       <Notification message={message} status={messageStatus} />
-      {loginForm()}
+      {!user && loginForm()}
+      {user &&
+            <p>
+              {user.username} logged in
+              <button
+                onClick={() => {
+                  window.localStorage.removeItem('loggedNoteappUser')
+                  setUser(null)
+                }}>
+                logout
+              </button>
+            </p>
+      }
+      {user && blogForm()}
     </div>
   )
 }
