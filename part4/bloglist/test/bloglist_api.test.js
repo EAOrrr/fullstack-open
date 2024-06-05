@@ -264,7 +264,7 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
         assert(titles.includes(blogToDelete.title))
     })
 
-    test.only('wrong token will return 401', async() => {
+    test('wrong token will return 401', async() => {
         const blogsAtStart = await helper.blogsInDb()
         const token = 'wrong token'
         const newBlog = {
@@ -282,6 +282,60 @@ describe.only('test blogs api with one user and 6 blogs of that user at db', () 
         assert.strictEqual(blogsAtStart.length, blogAtEnd.length)
     })
 
+    test.only('a blog can be changed with missing argument', async() => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToChange = blogsAtStart[0]
+        const oldLikes = blogToChange.likes
+        const newBlog = {
+            likes: blogToChange.likes + 1
+        }
+        const updated = await api
+            .put(`/api/blogs/${blogToChange.id}`)
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+        console.log(updated.body)
+        const blogAtEnd = await helper.blogsInDb()
+        const changedBlog = blogAtEnd.find(blog => blog.id === blogToChange.id)
+        assert(changedBlog)
+        assert(changedBlog.user)
+        assert.strictEqual(changedBlog.user.toString(), blogToChange.user.toString())
+        assert.strictEqual(changedBlog.title, blogToChange.title)
+        assert.strictEqual(changedBlog.author, blogToChange.author)
+        assert.strictEqual(changedBlog.url, blogToChange.url)
+        assert.strictEqual(changedBlog.likes, oldLikes + 1)
+        assert.strictEqual(blogsAtStart.length, blogAtEnd.length)
+    })
+
+    test.only('a blog can be changed with all argument', async() => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToChange = blogsAtStart[1]
+        const oldLikes = blogToChange.likes
+        const newBlog = {
+            user: blogToChange.user.toString(),
+            title: blogToChange.title,
+            url: blogToChange.url,
+            author: blogToChange.author,
+            likes: blogToChange.likes + 1
+        }
+        const updated = await api
+            .put(`/api/blogs/${blogToChange.id}`)
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+        
+        const blogAtEnd = await helper.blogsInDb()
+        const changedBlog = blogAtEnd.find(blog => blog.id === blogToChange.id)
+        assert(changedBlog)
+        assert(changedBlog.user)
+        console.log(updated.body)
+        assert.strictEqual(changedBlog.user.toString(), blogToChange.user.toString())
+        assert.strictEqual(changedBlog.title, blogToChange.title)
+        assert.strictEqual(changedBlog.author, blogToChange.author)
+        assert.strictEqual(changedBlog.url, blogToChange.url)
+        assert.strictEqual(changedBlog.likes, oldLikes + 1)
+        assert.strictEqual(blogsAtStart.length, blogAtEnd.length)
+    })
     
 })
 

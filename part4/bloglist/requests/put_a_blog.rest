@@ -1,0 +1,10 @@
+PUT http://localhost:3003/api/blogs/665e722c50acef56b1fdf85b
+Content-Type: application/json
+
+{
+    "title": "You can't handle the truth",
+    "author": "Jack Nicholson",
+    "url": "http://www.imdb.com/title/tt0104257/",
+    "user": "665dd929356611ef0aaa3aee",
+    "likes": 1
+}
