@@ -83,7 +83,7 @@ const App = () => {
       setBlogs(blogs
         .map(blog => blog.id !== blogObject.id
           ? blog
-          : { ...blog, likes: blog.likes + 1 })
+          : newBlog)
         .sort((a, b) => b.likes - a.likes)
       )
       console.log('success')
