@@ -1,9 +1,6 @@
-const jwt = require('jsonwebtoken')
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
 const middleware = require('../utils/middleware')
-const { response } = require('express')
 
 blogsRouter.get('/', async (request, response) => {
     const blogs = await Blog
@@ -31,6 +28,11 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
     const savedBlogs = await blog.save()
     user.blogs = user.blogs.concat(savedBlogs._id)
     await user.save()
+    await savedBlogs.populate('user', {
+        username: 1,
+        name: 1,
+        id: 1,
+    })
     response.status(201).json(savedBlogs)
 })
 
@@ -43,6 +45,8 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
     const userId = user.id
     if (blog.user.toString() === userId.toString()) {
         await Blog.findByIdAndDelete(request.params.id)
+        user.blogs = user.blogs.filter(b => b.toString() !== request.params.id.toString())
+        user.save()
         response.status(204).end()
     }
     else {
@@ -60,6 +64,11 @@ blogsRouter.put('/:id', async(request, response, next) => {
                 new: true, 
                 runValidators: true, 
                 context: 'query'
+            })
+            .populate('user', {
+               username: 1,
+               name: 1,
+               id: 1, 
             })
         return response.json(updatedBlog)
     } catch (exception) {

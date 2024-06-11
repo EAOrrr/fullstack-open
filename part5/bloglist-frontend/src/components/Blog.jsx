@@ -34,7 +34,7 @@ const Blog = ({ blog, likeBlog, removeBlog, ownership }) => {
   const hideWhenVisible = { display: visible ? 'none' : '' }
   const showWhenVisible = { display: visible ? '' : 'none' }
   return (
-    <div className='blog' style={blogStyle}>
+      <div className='blog' style={blogStyle}>
       {blog.title} {blog.author}
       <button style={hideWhenVisible} onClick={toggleVisibility}>view</button>
       <button style={showWhenVisible} onClick={toggleVisibility}>hide</button>
@@ -42,7 +42,7 @@ const Blog = ({ blog, likeBlog, removeBlog, ownership }) => {
         <a href={blog.url}>{blog.url}</a><br></br>
         likes: {blog.likes} <button onClick={handleLike}>like</button><br></br>
         {blog.user.name}<br></br>
-        {ownership && <button onClick={handleRemove}>remove</button>}
+        {ownership && <button className='remove' onClick={handleRemove}>remove</button>}
       </div>
     </div>
   )

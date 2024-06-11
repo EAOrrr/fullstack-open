@@ -112,11 +112,22 @@ const App = () => {
         <form onSubmit={handleLogin}>
           <div>
             username
-            <input type='text' value={username} name='Username' onChange={({ target }) => setUsername(target.value)}/>
+            <input
+              data-testid='username'
+              type='text'
+              value={username}
+              name='Username' 
+              onChange={({ target }) => setUsername(target.value)}
+            />
           </div>
           <div>
             password
-            <input type='password' value={password} name='Password' onChange={({ target }) => setPassword(target.value)}/>
+            <input
+              data-testid='password'
+              type='password'
+              value={password} 
+              name='Password' 
+              onChange={({ target }) => setPassword(target.value)}/>
           </div>
           <button type='submit'>login</button>
         </form>
@@ -131,8 +142,8 @@ const App = () => {
       <div>
         {/* blogs */}
         <div>
-          {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} likeBlog={handleLike} removeBlog={handleRemove} ownership={user.username === blog.user.username}/>
+          {blogs.map((blog, index) =>
+            <Blog key={blog.id} blog={blog} index={index} likeBlog={handleLike} removeBlog={handleRemove} ownership={user.username === blog.user.username}/>
           )}
         </div>
 
@@ -156,7 +167,7 @@ const App = () => {
       {!user && loginForm()}
       {user &&
             <p>
-              {user.username} logged in
+              {(user.name || user.username)} logged in
               <button
                 onClick={() => {
                   window.localStorage.removeItem('loggedNoteappUser')
