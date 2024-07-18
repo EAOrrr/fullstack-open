@@ -1,42 +1,47 @@
-import React from 'react'
-import '@testing-library/jest-dom/extend-expect'
-import { render, fireEvent  } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, test } from 'vitest'
+
 import Blog from './Blog'
 
-describe('Blog component tests', () => {
-  let blog = {
-    title:"React patterns",
-    author:"Michael Chan",
-    url:"https://reactpatterns.com/",
-    likes:7
+describe('Blog', () => {
+  const blog = {
+    title: 'Testing the testing',
+    url: 'http://example.com',
+    author: 'Ted Tester',
+    likes: 10
   }
 
-  let mockUpdateBlog = jest.fn()
-  let mockDeleteBlog = jest.fn()
+  test('renders only tile and author by default', () => {
+    render(<Blog blog={blog} handleVote={vi.fn()} handleDelete={vi.fn()} />)
 
-  test('renders title and author', () => {
-    const component = render(
-      <Blog blog={blog} updateBlog={mockUpdateBlog} deleteBlog={mockDeleteBlog} />
-    )
-    expect(component.container).toHaveTextContent(
-      'React patterns - Michael Chan'
-    )
+    expect(screen.getByText('Testing the testing', { exact: false })).toBeDefined()
+    expect(screen.queryByText('http://example.com', { exact: false })).toBeNull()
   })
 
-  test('clicking the view button displays url and number of likes', () => {
-    const component = render(
-      <Blog blog={blog} updateBlog={mockUpdateBlog} deleteBlog={mockDeleteBlog} />
-    )
+  test('renders url and likes after clicking view', async () => {
+    const user = userEvent.setup()
 
-    const button = component.getByText('view')
-    fireEvent.click(button)
+    render(<Blog blog={blog} handleVote={vi.fn()} handleDelete={vi.fn()} />)
+    const button = screen.getByText('view')
+    await user.click(button)
 
-    expect(component.container).toHaveTextContent(
-      'https://reactpatterns.com/'
-    )
-
-    expect(component.container).toHaveTextContent(
-      '7'
-    )
+    expect(screen.getByText('http://example.com', { exact: false })).toBeDefined()
+    expect(screen.getByText('likes 10', { exact: false })).toBeDefined()
   })
-})
+
+  test('clicking like twice calls event handler twice', async () => {
+    const handleVote = vi.fn()
+    const user = userEvent.setup()
+
+    render(<Blog blog={blog} handleVote={handleVote} handleDelete={vi.fn()} />)
+    const button = screen.getByText('view')
+    await user.click(button)
+
+    const likeButton = screen.getByText('like')
+    await user.click(likeButton)
+    await user.click(likeButton)
+
+    expect(handleVote.mock.calls).toHaveLength(2)
+  })
+}

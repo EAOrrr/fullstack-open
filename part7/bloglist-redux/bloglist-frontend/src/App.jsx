@@ -1,132 +1,112 @@
-import React, { useState, useEffect } from 'react'
-import Blog from './components/Blog'
-import Notification from './components/Notification'
-import LoginForm from './components/LoginForm'
-import BlogForm from './components/BlogForm'
-import Togglable from './components/Togglable'
+import { useState, useEffect, createRef } from 'react'
+
 import blogService from './services/blogs'
 import loginService from './services/login'
+import storage from './services/storage'
+import Login from './components/Login'
+import Blog from './components/Blog'
+import NewBlog from './components/NewBlog'
+import Notification from './components/Notification'
+import Togglable from './components/Togglable'
+import { createNotification } from './reducers/notificationReducer'
 import { useDispatch } from 'react-redux'
-import { createErrorMessage, createSuccessMessage } from './reducers/notificationReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const [allBlogs, setAllBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
-
-  const blogFormRef = React.createRef()
+  // const [notification, setNotification] = useState(null)
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
+    blogService.getAll().then(blogs =>
+      setBlogs(blogs)
+    )
+  }, [])
+
+  useEffect(() => {
+    const user = storage.loadUser()
+    if (user) {
       setUser(user)
-      blogService.setToken(user.token)
-      getAllBlogs()
     }
   }, [])
 
-  const getAllBlogs = async () => {
-    const blogs = await blogService.getAll()
-    setAllBlogs(blogs)
-  }
+  const blogFormRef = createRef()
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async (credentials) => {
     try {
-      const user = await loginService.login({
-        username, password,
-      })
-
-      window.localStorage.setItem(
-        'loggedBlogappUser', JSON.stringify(user)
-      )
+      const user = await loginService.login(credentials)
       setUser(user)
-      blogService.setToken(user.token)
-      setUsername('')
-      setPassword('')
-    } catch (exception) {
-      dispatch(createErrorMessage('Wrong credentials', 5000))
+      storage.saveUser(user)
+      dispatch(createNotification(`Welcome back, ${user.name}`))
+    } catch (error) {
+      dispatch(createNotification('Wrong credentials', 'error'))
     }
   }
 
-  const handleLogout = async (event) => {
-    event.preventDefault()
-    window.localStorage.removeItem('loggedBlogappUser')
+  const handleCreate = async (blog) => {
+    const newBlog = await blogService.create(blog)
+    setBlogs(blogs.concat(newBlog))
+    dispatch(createNotification(`Blog created: ${newBlog.title}, ${newBlog.author}`))
+    blogFormRef.current.toggleVisibility()
+  }
+
+  const handleVote = async (blog) => {
+    console.log('updating', blog)
+    const updatedBlog = await blogService.update(blog.id, {
+      ...blog,
+      likes: blog.likes + 1
+    })
+    dispatch(createNotification(`You liked ${updatedBlog.title} by ${updatedBlog.author}`))
+    setBlogs(blogs.map(b => b.id === blog.id ? updatedBlog : b))
+  }
+
+  const handleLogout = () => {
     setUser(null)
+    storage.removeUser()
+    dispatch(createNotification(`Bye, ${user.name}!`))
   }
 
-  const createBlog = async (BlogToAdd) => {
-    try {
-      blogFormRef.current.toggleVisibility()
-      const createdBlog = await blogService
-        .create(BlogToAdd)
-      setAllBlogs(allBlogs.concat(createdBlog))
-      dispatch(createSuccessMessage(`Blog ${BlogToAdd.title} was successfully added`, 5000))
-    } catch(exception) {
-      dispatch(createErrorMessage(`Cannot add blog ${BlogToAdd.title}`, 5000))
+  const handleDelete = async (blog) => {
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+      await blogService.remove(blog.id)
+      setBlogs(blogs.filter(b => b.id !== blog.id))
+      dispatch(createNotification(`Blog ${blog.title}, by ${blog.author} removed`))
     }
   }
 
-  const updateBlog = async (BlogToUpdate) => {
-    try {
-      const updatedBlog = await blogService
-        .update(BlogToUpdate)
-      console.log('success')
-      setAllBlogs(allBlogs.map(blog => blog.id !== BlogToUpdate.id ? blog : updatedBlog))
-      dispatch(createSuccessMessage(`Blog ${BlogToUpdate.title} was successfully updated`, 5000))
-    } catch(exception) {
-      dispatch(createErrorMessage(`Cannot update blog ${BlogToUpdate.title}`, 5000))
-    }
+  if (!user) {
+    return (
+      <div>
+        <h2>blogs</h2>
+        <Notification  />
+        <Login doLogin={handleLogin} />
+      </div>
+    )
   }
 
-  const deleteBlog = async (BlogToDelete) => {
-    console.log('delete Blog called')
-    try {
-      if (window.confirm(`Delete ${BlogToDelete.title} ?`)) {
-        await blogService
-          .remove(BlogToDelete.id)
-        setAllBlogs(allBlogs.filter(blog => blog.id !== BlogToDelete.id))
-        dispatch(createSuccessMessage(`Blog ${BlogToDelete.title} was successfully deleted`, 5000))
-      }
-    } catch(exception) {
-      dispatch(createErrorMessage(`Cannot delete blog ${BlogToDelete.title}`, 5000))
-    }
-  }
-
-  const byLikes = (b1, b2) => b2.likes - b1.likes
+  const byLikes = (a, b) => b.likes - a.likes
 
   return (
     <div>
-      <h2>Blogs</h2>
+      <h2>blogs</h2>
       <Notification />
-      {user === null ?
-        <LoginForm
-          handleLogin={handleLogin}
-          username={username}
-          setUsername={setUsername}
-          setPassword={setPassword}
-          password={password}
-        /> :
-        <div>
-          <p>{user.name} logged in<button onClick={handleLogout} type="submit">logout</button></p>
-          <Togglable buttonLabel="Add new blog" ref={blogFormRef}>
-            <BlogForm
-              createBlog={createBlog}
-            />
-          </Togglable>
-          {allBlogs.sort(byLikes).map(blog =>
-            <Blog
-              key={blog.id}
-              blog={blog}
-              updateBlog={updateBlog}
-              deleteBlog={deleteBlog}
-            />
-          )}
-        </div>
-      }
+      <div>
+        {user.name} logged in
+        <button onClick={handleLogout}>
+          logout
+        </button>
+      </div>
+      <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+        <NewBlog doCreate={handleCreate} />
+      </Togglable>
+      {blogs.sort(byLikes).map(blog =>
+        <Blog
+          key={blog.id}
+          blog={blog}
+          handleVote={handleVote}
+          handleDelete={handleDelete}
+        />
+      )}
     </div>
   )
 }
