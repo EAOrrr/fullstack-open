@@ -13,6 +13,7 @@ const getAll = () => {
 }
 
 const update = (id, newObject) => {
+  console.log(id, newObject)
   const request = axios.put(`${baseUrl}/${id}`, newObject, getConfit())
   return request.then(response => response.data)
 }

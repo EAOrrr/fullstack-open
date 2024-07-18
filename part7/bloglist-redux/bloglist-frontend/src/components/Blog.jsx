@@ -1,8 +1,12 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import storage from '../services/storage'
+import { useDispatch } from 'react-redux'
+import { likeBlog, removeBlog } from '../reducers/blogReducer'
+import { createNotification } from '../reducers/notificationReducer'
 
-const Blog = ({ blog, handleVote, handleDelete }) => {
+const Blog = ({ blog }) => {
+  const dispatch = useDispatch()
   const [visible, setVisible] = useState(false)
 
   const nameOfUser = blog.user ? blog.user.name : 'anonymous'
@@ -15,6 +19,30 @@ const Blog = ({ blog, handleVote, handleDelete }) => {
   }
 
   const canRemove = blog.user ? blog.user.username === storage.me() : true
+
+  const like = async (blog) => {
+    console.log('like', blog)
+    try {
+      await dispatch(likeBlog(blog))
+      dispatch(createNotification(`You liked ${blog.title} by ${blog.author}`))
+    }
+    catch (error) {
+      console.error(error)
+      dispatch(createNotification('Failed to like blog', 'error'))
+    }
+  }
+
+  const remove = async (blog) => {
+    console.log('remove', blog)
+    try {
+      await dispatch(removeBlog(blog))
+      dispatch(createNotification(`Blog removed: ${blog.title}, ${blog.author}`))
+    }
+    catch (error) {
+      console.error(error)
+      dispatch(createNotification('Failed to remove blog', 'error'))
+    }
+  }
 
   // console.log(blog.user, storage.me(), canRemove)
 
@@ -31,13 +59,13 @@ const Blog = ({ blog, handleVote, handleDelete }) => {
             likes {blog.likes}
             <button
               style={{ marginLeft: 3 }}
-              onClick={() => handleVote(blog)}
+              onClick={() => like(blog)}
             >
               like
             </button>
           </div>
           <div>{nameOfUser}</div>
-          {canRemove && <button onClick={() => handleDelete(blog)}>
+          {canRemove && <button onClick={() => remove(blog)}>
             remove
           </button>}
         </div>
@@ -54,8 +82,6 @@ Blog.propTypes = {
     likes: PropTypes.number.isRequired,
     user: PropTypes.object,
   }).isRequired,
-  handleVote: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired
 }
 
 export default Blog
