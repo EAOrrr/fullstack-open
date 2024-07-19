@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import storage from '../services/storage'
 import { useDispatch } from 'react-redux'
 import { likeBlog, removeBlog } from '../reducers/blogReducer'
-import { createNotification } from '../reducers/notificationReducer'
+import { Link } from 'react-router-dom'
 
 const Blog = ({ blog }) => {
   const dispatch = useDispatch()
@@ -34,7 +34,7 @@ const Blog = ({ blog }) => {
 
   return (
     <div style={style} className='blog'>
-      {blog.title} by {blog.author}
+      <Link to={`/blogs/${blog.id}`}>{blog.title} by {blog.author}</Link>
       <button style={{ marginLeft: 3 }} onClick={() => setVisible(!visible)}>
         {visible ? 'hide' : 'view'}
       </button>

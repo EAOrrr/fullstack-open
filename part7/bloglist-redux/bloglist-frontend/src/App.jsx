@@ -1,17 +1,23 @@
-import { useState, useEffect, createRef } from 'react'
+import { useEffect, createRef } from 'react'
+import {
+  BrowserRouter as Router,
+  Routes, Route, Link
+} from 'react-router-dom'
 
-import blogService from './services/blogs'
-import loginService from './services/login'
-import storage from './services/storage'
 import Login from './components/Login'
 import Blog from './components/Blog'
 import NewBlog from './components/NewBlog'
 import Notification from './components/Notification'
+import Users from './views/Users'
+import User from './views/User'
 import Togglable from './components/Togglable'
-import { createNotification } from './reducers/notificationReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { initializeBlogs } from './reducers/blogReducer'
 import { initializeUser, logout, login } from './reducers/userReducer'
+import { initializeUsers } from './reducers/usersReducer'
+import Header from './views/Header'
+import Home from './views/Home'
+import BlogView from './views/BlogView'
 
 const App = () => {
   const dispatch = useDispatch()
@@ -26,47 +32,40 @@ const App = () => {
     dispatch(initializeUser())
   }, [])
 
-  const blogFormRef = createRef()
+  useEffect(() => {
+      // fetch users
+      dispatch(initializeUsers())
+  }, [])
 
   const handleLogin = (credentials) => {
-    dispatch(login(credentials))
+      dispatch(login(credentials))
   }
 
   const handleLogout = () => {
-    dispatch(logout(user))
+      dispatch(logout(user))
   }
 
-
-  if (!user) {
-    return (
-      <div>
-        <h2>blogs</h2>
-        <Notification  />
-        <Login doLogin={handleLogin} />
-      </div>
-    )
-  }
 
   return (
-    <div>
-      <h2>blogs</h2>
-      <Notification />
-      <div>
-        {user.name} logged in
-        <button onClick={handleLogout}>
-          logout
-        </button>
-      </div>
-      <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-        <NewBlog  />
-      </Togglable>
-      {blogs.map(blog =>
-        <Blog
-          key={blog.id}
-          blog={blog}
-        />
-      )}
-    </div>
+    <Router>
+        <Header />
+        <Notification />
+          {user 
+              ? <div>
+                  {user.name} logged in 
+                  <button onClick={handleLogout}>logout</button>
+              </div> 
+              : <Login doLogin={handleLogin} />
+          }
+        
+      <Routes>
+        <Route path='/' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/users' element={<Users />} />
+        <Route path='/users/:id' element={<User />} />
+        <Route path='/blogs/:id' element={<BlogView />} />
+      </Routes>
+    </Router>
   )
 }
 
