@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import blogService from '../services/blogs'
 import { createNotification } from './notificationReducer'
+import { addUserBlog, removeUserBlog } from './usersReducer'
 
 const byLikes = (a, b) => b.likes - a.likes
 
@@ -61,6 +62,7 @@ export const createBlog = blog => {
             const newBlog = await blogService.create(blog)
             dispatch(appendBlog(newBlog))
             dispatch(createNotification(`A new blog ${newBlog.title} by ${newBlog.author} added`))
+            dispatch(addUserBlog(newBlog))
         }
         catch (error) {
             console.error(error)
@@ -75,6 +77,7 @@ export const removeBlog = blog => {
             await blogService.remove(blog.id)
             dispatch(deleteBlog(blog))
             dispatch(createNotification(`You removed ${blog.title}`))
+            dispatch(removeUserBlog(blog))
         }
         catch (error) {
             console.error(error)

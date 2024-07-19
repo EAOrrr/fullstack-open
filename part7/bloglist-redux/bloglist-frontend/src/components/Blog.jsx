@@ -6,10 +6,6 @@ import { likeBlog, removeBlog } from '../reducers/blogReducer'
 import { Link } from 'react-router-dom'
 
 const Blog = ({ blog }) => {
-  const dispatch = useDispatch()
-  const [visible, setVisible] = useState(false)
-
-  const nameOfUser = blog.user ? blog.user.name : 'anonymous'
 
   const style = {
     border: 'solid',
@@ -18,45 +14,10 @@ const Blog = ({ blog }) => {
     marginBottom: 5,
   }
 
-  const canRemove = blog.user ? blog.user.username === storage.me() : true
-
-  const like = async (blog) => {
-    console.log('like', blog)
-    dispatch(likeBlog(blog))
-  }
-
-  const remove = async (blog) => {
-    console.log('remove', blog)
-    dispatch(removeBlog(blog))
-  }
-
-  // console.log(blog.user, storage.me(), canRemove)
 
   return (
     <div style={style} className='blog'>
       <Link to={`/blogs/${blog.id}`}>{blog.title} by {blog.author}</Link>
-      <button style={{ marginLeft: 3 }} onClick={() => setVisible(!visible)}>
-        {visible ? 'hide' : 'view'}
-      </button>
-      {visible && (
-        <div>
-          <div><a href={blog.url}>{blog.url}</a></div>
-          <div>
-            likes {blog.likes}
-            <button
-              style={{ marginLeft: 3 }}
-              onClick={() => like(blog)}
-            >
-              like
-            </button>
-          </div>
-          <div>{nameOfUser}</div>
-          {canRemove && <button onClick={() => remove(blog)}>
-            remove
-          </button>}
-        </div>
-      )}
-
     </div>
   )
 }

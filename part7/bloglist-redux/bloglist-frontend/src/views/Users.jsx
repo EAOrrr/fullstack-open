@@ -11,6 +11,7 @@ const Users = () => {
         <div>
             <h1>Users</h1>
             <table>
+                <tbody>
                 <tr>
                     <td></td>
                     <td><strong>blogs created</strong></td>
@@ -26,6 +27,7 @@ const Users = () => {
                            <td>{user.blogs.length}</td>
                         </tr>
                 )}
+                </tbody>
             </table>
         </div>
     )
