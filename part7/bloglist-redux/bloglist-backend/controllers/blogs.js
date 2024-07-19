@@ -35,6 +35,17 @@ router.post('/', userExtractor, async (request, response) => {
   response.status(201).json(savedBlog)
 })
 
+router.post('/:id/comments', async(request, response) => {
+  const comment = request.body['comment']
+  const blog = await Blog.findById(request.params.id)
+  if (!blog) {
+    return response.status(204).end()
+  }
+  blog.comments = blog.comments.concat(comment)
+  const savedBlog = await blog.save()
+  response.status(201).json(savedBlog)
+})
+
 router.delete('/:id', userExtractor, async (request, response) => {
   const user = request.user
 

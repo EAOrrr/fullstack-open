@@ -28,6 +28,17 @@ const blogSlice = createSlice({
         },
         deleteBlog(state, action) {
             return state.filter(blog => blog.id !== action.payload.id)
+        },
+        addComment(state, action) {
+            const {id, comment} = action.payload
+            return state.map(b => 
+                b.id === id
+                ? {
+                    ...b,
+                    comments: b.comments.concat(comment)
+                }
+                : b
+            )
         }
     }
 })
@@ -76,8 +87,8 @@ export const removeBlog = blog => {
         try {
             await blogService.remove(blog.id)
             dispatch(deleteBlog(blog))
-            dispatch(createNotification(`You removed ${blog.title}`))
             dispatch(removeUserBlog(blog))
+            dispatch(createNotification(`You removed ${blog.title}`))
         }
         catch (error) {
             console.error(error)
@@ -86,5 +97,19 @@ export const removeBlog = blog => {
     }
 }
 
-export const { updateBlog, appendBlog, setBlogs, deleteBlog } = blogSlice.actions
+export const commentBlog = (blog, comment) => {
+    return async dispatch => {
+        try {
+            await blogService.addComment(blog.id, {comment})
+            dispatch(addComment({id: blog.id, comment}))
+            dispatch(createNotification(`You commented ${blog.title}`))
+        }
+        catch(error) {
+            console.error(error)
+            dispatch(createNotification('Failed to comment the blog', 'error'))
+        }
+    }
+}
+
+export const { updateBlog, appendBlog, setBlogs, deleteBlog, addComment } = blogSlice.actions
 export default blogSlice.reducer
