@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import blogService from '../services/blogs'
+import { createNotification } from './notificationReducer'
 
 const byLikes = (a, b) => b.likes - a.likes
 
@@ -39,25 +40,46 @@ export const initializeBlogs = () => {
 
 export const likeBlog = blog => {
     return async dispatch => {
-        const likedBlog = await blogService.update(blog.id, {
-            ...blog, likes: blog.likes + 1
-        })
-        console.log('likedBlog', likedBlog)
-        dispatch(updateBlog(likedBlog))
+        try {
+            const likedBlog = await blogService.update(blog.id, {
+                ...blog, likes: blog.likes + 1
+            })
+            console.log('likedBlog', likedBlog)
+            dispatch(updateBlog(likedBlog))
+            dispatch(createNotification(`You liked ${likedBlog.title}`))
+        }
+        catch (error) {
+            console.error(error)
+            dispatch(createNotification('Failed to like the blog', 'error'))
+        }
     }
 }
 
 export const createBlog = blog => {
     return async dispatch => {
-        const newBlog = await blogService.create(blog)
-        dispatch(appendBlog(newBlog))
+        try {
+            const newBlog = await blogService.create(blog)
+            dispatch(appendBlog(newBlog))
+            dispatch(createNotification(`A new blog ${newBlog.title} by ${newBlog.author} added`))
+        }
+        catch (error) {
+            console.error(error)
+            dispatch(createNotification('Failed to create a new blog', 'error'))
+        }
     }
 }
 
 export const removeBlog = blog => {
     return async dispatch => {
-        await blogService.remove(blog.id)
-        dispatch(deleteBlog(blog))
+        try {
+            await blogService.remove(blog.id)
+            dispatch(deleteBlog(blog))
+            dispatch(createNotification(`You removed ${blog.title}`))
+        }
+        catch (error) {
+            console.error(error)
+            dispatch(createNotification('Failed to remove the blog', 'error'))
+        }
     }
 }
 

@@ -18,17 +18,10 @@ const NewBlog = () => {
       url: url.value, 
       author: author.value
     }
-    try {
-      await dispatch(createBlog(newBlog))
-      title.onReset()
-      url.onReset()
-      author.onReset()
-      dispatch(createNotification(`A new blog ${title.value} by ${author.value} added`))
-    }
-    catch (error) {
-      console.error(error)
-      dispatch(createNotification('Failed to create blog', 'error'))
-    }
+    dispatch(createBlog(newBlog))
+    title.onReset()
+    url.onReset()
+    author.onReset()
   }
 
   return (

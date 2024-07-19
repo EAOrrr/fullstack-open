@@ -11,10 +11,11 @@ import Togglable from './components/Togglable'
 import { createNotification } from './reducers/notificationReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { initializeBlogs } from './reducers/blogReducer'
+import { initializeUser, logout, login } from './reducers/userReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const [user, setUser] = useState(null)
+  const user = useSelector(state => state.user)
   const blogs = useSelector(state => state.blogs)
 
   useEffect(() => {
@@ -22,29 +23,17 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    const user = storage.loadUser()
-    if (user) {
-      setUser(user)
-    }
+    dispatch(initializeUser())
   }, [])
 
   const blogFormRef = createRef()
 
-  const handleLogin = async (credentials) => {
-    try {
-      const user = await loginService.login(credentials)
-      setUser(user)
-      storage.saveUser(user)
-      dispatch(createNotification(`Welcome back, ${user.name}`))
-    } catch (error) {
-      dispatch(createNotification('Wrong credentials', 'error'))
-    }
+  const handleLogin = (credentials) => {
+    dispatch(login(credentials))
   }
 
   const handleLogout = () => {
-    setUser(null)
-    storage.removeUser()
-    dispatch(createNotification(`Bye, ${user.name}!`))
+    dispatch(logout(user))
   }
 
 

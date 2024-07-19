@@ -22,26 +22,12 @@ const Blog = ({ blog }) => {
 
   const like = async (blog) => {
     console.log('like', blog)
-    try {
-      await dispatch(likeBlog(blog))
-      dispatch(createNotification(`You liked ${blog.title} by ${blog.author}`))
-    }
-    catch (error) {
-      console.error(error)
-      dispatch(createNotification('Failed to like blog', 'error'))
-    }
+    dispatch(likeBlog(blog))
   }
 
   const remove = async (blog) => {
     console.log('remove', blog)
-    try {
-      await dispatch(removeBlog(blog))
-      dispatch(createNotification(`Blog removed: ${blog.title}, ${blog.author}`))
-    }
-    catch (error) {
-      console.error(error)
-      dispatch(createNotification('Failed to remove blog', 'error'))
-    }
+    dispatch(removeBlog(blog))
   }
 
   // console.log(blog.user, storage.me(), canRemove)
