@@ -71,9 +71,10 @@ export const createBlog = blog => {
     return async dispatch => {
         try {
             const newBlog = await blogService.create(blog)
+            console.log(newBlog)
             dispatch(appendBlog(newBlog))
-            dispatch(createNotification(`A new blog ${newBlog.title} by ${newBlog.author} added`))
             dispatch(addUserBlog(newBlog))
+            dispatch(createNotification(`A new blog ${newBlog.title} by ${newBlog.author} added`))
         }
         catch (error) {
             console.error(error)

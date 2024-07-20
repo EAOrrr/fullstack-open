@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom"
 import { commentBlog, likeBlog, removeBlog } from "../reducers/blogReducer"
 import storage from "../services/storage"
 import { useField } from '../hooks'
+import { TextField, Button } from "@mui/material"
+import { useState } from "react"
 
 const BlogView = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const comment = useField('text')
+    const [comment, setComment] = useState('')
     const id = useParams().id
     const blog = useSelector(state => state.blogs.find(b => b.id===id))
     if (!blog) {
@@ -18,8 +20,8 @@ const BlogView = () => {
     const handleAddComment = (event) => {
         event.preventDefault()
         console.log('hello world')
-        dispatch(commentBlog(blog, comment.value))
-        comment.onReset()
+        dispatch(commentBlog(blog, comment))
+        setComment('')
     }
 
     return (
@@ -45,8 +47,9 @@ const BlogView = () => {
             <div>
                 <h3>Comments</h3>
                 <form onSubmit={handleAddComment} >
-                    <input {...comment} />
-                    <button type="submit">add comment</button>
+                    <TextField label='comment' required={true} onChange={({target})=>{setComment(target.value)}}/>
+                    <br></br>
+                    <Button variant='contained' color='primary' type='submit'>add comment</Button>
                 </form>
                 {blog.comments.map((c, idx) => {
                     return (
