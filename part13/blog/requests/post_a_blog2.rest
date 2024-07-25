@@ -1,0 +1,9 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOjEsImlhdCI6MTcyMTg4ODk2OX0.K_RXvmFoF_pHeSI3Zyhsnif5cjPbcakqR3RHewwKdlM
+
+{
+    "title": "Clean Code",
+    "author": "Bob Martin",
+    "url": "https://google.com"
+}
