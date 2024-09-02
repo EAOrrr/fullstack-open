@@ -4,23 +4,21 @@ import storage from "../services/storage";
 import { createNotification } from "./notificationReducer";
 
 const userSlice = createSlice({
-    name: 'user',
-    initialState: null,
-    reducers: {
-        setUser(state, action) {
-            return action.payload
-        },
-        removeUser(state) {
-            return null
-        }
+  name: 'user',
+  initialState: null,
+  reducers: {
+    setUser(state, action) {
+      return action.payload
+    },
+    removeUser(state) {
+      return null
     }
+  }
 })
 
 export const initializeUser = () => {
     return dispatch => {
-        console.log('initialize user')
         const user = storage.loadUser()
-        console.log(user)
         if (user) {
             dispatch(setUser(user))
         }
@@ -36,7 +34,6 @@ export const login = (credentials) => {
             dispatch(createNotification(`Welcome back, ${user.name}`))
         }
         catch (error) {
-            console.error(error)
             dispatch(createNotification('Wrong credentials', 'error'))
         }
     }
